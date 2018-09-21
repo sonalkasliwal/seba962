@@ -172,7 +172,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private static final String SLASH = "/";
 
-    private static final long TRAFFIC_PERIOD = 5000;
+    private static final long TRAFFIC_PERIOD = 3000;
     private static final long SUMMARY_PERIOD = 30000;
 
     private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
