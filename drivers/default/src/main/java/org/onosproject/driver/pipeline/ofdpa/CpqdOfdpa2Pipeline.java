@@ -1451,7 +1451,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * @return the group key of the indirect table
      */
     private GroupKey popVlanPuntGroupKey() {
-        int hash = POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK);
+        int hash = POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_NIBBLE_MASK);
         return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
     }
 

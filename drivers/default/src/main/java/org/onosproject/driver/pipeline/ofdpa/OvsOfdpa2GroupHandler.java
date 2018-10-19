@@ -34,4 +34,9 @@ public class OvsOfdpa2GroupHandler extends CpqdOfdpa2GroupHandler {
     protected boolean requireVlanPopBeforeMplsPush() {
         return true;
     }
+
+    @Override
+    protected boolean requireAllowVlanTransition() {
+        return false;
+    }
 }
