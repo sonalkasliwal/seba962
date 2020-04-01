@@ -213,13 +213,11 @@ public abstract class IGMP extends BasePacket {
             igmp.resField = bb.get();
             igmp.checksum = bb.getShort();
 
-            if (isV2) {
-                igmp.addGroup(new IGMPQuery(IpAddress.valueOf(bb.getInt()), 0));
-                if (igmp.validChecksum()) {
-                    return igmp;
-                }
-                throw new DeserializationException("invalid checksum");
-            }
+             if (igmp.validChecksum(data, 0)) {
+                 return igmp;
+             } else {
+                 throw new DeserializationException("invalid checksum");
+             }
 
             // second check for IGMPv3
             checkInput(data, offset, length, IGMPv3.MINIMUM_HEADER_LEN);
@@ -273,7 +271,26 @@ public abstract class IGMP extends BasePacket {
      *
      * @return true if valid, false if not
      */
-    protected abstract boolean validChecksum();
+    protected boolean validChecksum(byte[] data, int start) {
+    	int end = start + data.length;
+        short checksum;
+        int sum = 0;
+        int wordData;
+        int checksumStart = start + 16 / Byte.SIZE;
+
+        for (int i = start; i <= end - 1; i = i + 2) {
+            // Skip, if the current bytes are checksum bytes
+            if (i == checksumStart) {
+                continue;
+            }
+            wordData = (data[i] << 8 & 0xFF00) + (data[i + 1] & 0xFF);
+            sum = sum + wordData;
+        }
+        int carry = sum >> 16 & 0xFF;
+        int finalSum = (sum & 0xFFFF) + carry;
+        checksum = (short) ~((short) finalSum & 0xFFFF);
+        return checksum == this.checksum;
+    }
 
     /*
      * (non-Javadoc)
@@ -378,10 +395,6 @@ public abstract class IGMP extends BasePacket {
             return true;
         }
 
-        @Override
-        protected boolean validChecksum() {
-            return true; //FIXME
-        }
     }
 
     public static class IGMPv2 extends IGMP {
@@ -401,19 +414,5 @@ public abstract class IGMP extends BasePacket {
             return false;
         }
 
-        @Override
-        protected boolean validChecksum() {
-            int accumulation = (((int) this.igmpType) & 0xff) << 8;
-            accumulation += ((int) this.resField) & 0xff;
-            if (!groups.isEmpty()) {
-                int ipaddr = groups.get(0).getGaddr().getIp4Address().toInt();
-                accumulation += (ipaddr >> 16) & 0xffff;
-                accumulation += ipaddr & 0xffff;
-            }
-            accumulation = (accumulation >> 16 & 0xffff)
-                    + (accumulation & 0xffff);
-            short checksum = (short) (~accumulation & 0xffff);
-            return checksum == this.checksum;
-        }
     }
 }
